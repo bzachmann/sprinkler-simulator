@@ -1,0 +1,15 @@
+{
+    "zone1": {
+        "time": 10,
+        "sprinklers": [
+            {"origin": [20, 20], "left_edge_deg": 90, "theta_deg": 120, "radius": 25, "gpm": 2.5},
+            {"origin": [20, 10], "left_edge_deg": 180, "theta_deg": 90, "radius": 25, "gpm": 1.8}
+        ]
+    },
+    "zone2": {
+        "time": 15,
+        "sprinklers": [
+            {"origin": [25, 0], "left_edge_deg": 45, "theta_deg": 180, "radius": 25, "gpm": 3.0}
+        ]
+    }
+}
