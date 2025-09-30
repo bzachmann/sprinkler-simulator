@@ -80,8 +80,8 @@ def add_partial_cylinder_to_surface(x, y, z, center, leftEdge_deg, theta_deg, ra
 
 
 # Create a grid of x and y coordinates
-x = np.linspace(0, 100, 1001)
-y = np.linspace(0, 100, 1001)
+x = np.linspace(-72, 155, 1001)
+y = np.linspace(-100, 150, 1001)
 x, y = np.meshgrid(x, y)
 z = np.zeros_like(x)
 

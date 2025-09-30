@@ -1,15 +1,12 @@
 {
     "zone1": {
-        "time": 10,
+        "time": 30,
         "sprinklers": [
-            {"origin": [20, 20], "left_edge_deg": 90, "theta_deg": 120, "radius": 25, "gpm": 2.5},
-            {"origin": [20, 10], "left_edge_deg": 180, "theta_deg": 90, "radius": 25, "gpm": 1.8}
-        ]
-    },
-    "zone2": {
-        "time": 15,
-        "sprinklers": [
-            {"origin": [25, 0], "left_edge_deg": 45, "theta_deg": 180, "radius": 25, "gpm": 3.0}
+            {"origin": [-45.1, 38.42], "left_edge_deg": 95.6, "theta_deg": 90, "radius": 33, "gpm": 1.2},
+            {"origin": [-44.18, 29.22], "left_edge_deg": 2.7, "theta_deg": 87.1, "radius": 33, "gpm": 1.2},
+            {"origin": [-39.95, -13.82], "left_edge_deg": 95.6, "theta_deg": 180, "radius": 33, "gpm": 1.2},
+            {"origin": [-36, -54.9], "left_edge_deg": 95.5, "theta_deg": 180, "radius": 33, "gpm": 1.2},
+            {"origin": [-2, -58.6], "left_edge_deg": 68, "theta_deg": 330, "radius": 29, "gpm": 2.95}
         ]
     }
 }
