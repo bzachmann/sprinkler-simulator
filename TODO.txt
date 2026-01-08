@@ -1,0 +1,6 @@
+- evaluate the extra 5 psi drop in sprinker getFlow function is this a good number to assume for fittings
+- print a warning in the getFlow functions for both sprinkler and pipe if the input pressure is out of bounds of the table values.  for sprinklers this would indicates its operating above or below the rated pressure
+- add length information to the sprinklers and determine a radius  based on the min between the tables values and the set maximum
+- move the interp1 function out of pipe.py.  use this in the sprinkler class too
+- add check to make sure operating flow of a zone is less than or equal to pumps capability at the operating pressure.  
+- if operating flow of zone is less than pumps capability.  calculate backpressure that will be caused by the cycle stop valve to slow down pump output flow

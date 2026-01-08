@@ -25,11 +25,19 @@ class Sprinkler:
         # Add more models as needed
     }
 
-    def __init__(self, name):
+    def __init__(self, name, model, location, left_edge_deg, theta_deg, max_radius):
         self.name = name
-        if name not in self._lookup_tables:
-            raise ValueError(f"Unknown sprinkler model: {name}")
-        self.lookup_table = self._lookup_tables[name]
+        self.model = model
+        self.location = location
+        self.left_edge_deg = left_edge_deg
+        self.theta_deg = theta_deg
+        self.max_radius = max_radius
+        self.operatingPressure = None
+        self.operatingFlow = None
+
+        if model not in self._lookup_tables:
+            raise ValueError(f"Unknown sprinkler model: {model}")
+        self.lookup_table = self._lookup_tables[model]
 
     def getFlow(self, pressure):
         """
@@ -53,7 +61,20 @@ class Sprinkler:
 
         # Should not reach here
         raise ValueError("Pressure out of interpolation range.")
+    
+    def setOperatingPressure(self, pressure):
+        self.operatingPressure = pressure
+        self.operatingFlow = self.getFlow(pressure)
 
+    def getOperatingFlow(self):
+        if self.operatingPressure is None:
+            raise ValueError("Operating pressure not set.")
+        return self.getFlow(self.operatingPressure)
+    
+    def getOperatingPressure(self):
+        if self.operatingPressure is None:
+            raise ValueError("Operating pressure not set.")
+        return self.operatingPressure
 # Example usage:
 # sprinkler = Sprinkler("42sa_3.0")
 # flow = sprinkler.getFlow(45)  # Interpolates between 40 and 50 psi

@@ -1,0 +1,13 @@
+{
+    "zone1": {
+        "time": 30,
+        "valve": [-46.65, 110],
+        "sprinklers": [
+            {"name": "1e", "origin": [-45.1, 38.42], "left_edge_deg": 95.6, "theta_deg": 90, "max_radius": 33, "type": "42sa_3.0"},
+            {"name": "1d", "origin": [-44.18, 29.22], "left_edge_deg": 2.7, "theta_deg": 87.1, "max_radius": 33, "type": "42sa_3.0"},
+            {"name": "1c", "origin": [-39.95, -13.82], "left_edge_deg": 95.6, "theta_deg": 180, "max_radius": 33, "type": "42sa_3.0"},
+            {"name": "1b", "origin": [-36, -54.9], "left_edge_deg": 95.5, "theta_deg": 180, "max_radius": 33, "type": "42sa_3.0"},
+            {"name": "1a", "origin": [-2, -58.6], "left_edge_deg": 68, "theta_deg": 330, "max_radius": 29, "type": "42sa_3.0"}
+        ]
+    }
+}

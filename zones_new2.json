@@ -1,0 +1,43 @@
+{
+  "id": "zone-1",
+  "type": "zone",
+  "props": {
+    "start": [-46.65, 110],
+    "run_time_minutes": 30,
+    "operating_pressure_psi": 68
+  },
+  "outputs": 
+  [
+    { "id": "pipe-1E", "type": "pipe", "end": [-45.1, 38.42], "diameter_in": 0.95,
+      "outputs": [
+        { "id": "sprinkler-1E", "type": "sprinkler","left_edge_degrees": 95.6, "theta_degrees": 90, "max_radius": 33, "model": "42sa_3.0"},
+        { "id": "pipe-1D", "type": "pipe", "end": [-44.18, 29.22], "diameter_in": 0.95,
+          "outputs": [
+            { "id": "sprinkler-1D", "type": "sprinkler","left_edge_degrees": 2.7, "theta_degrees": 87.1, "max_radius": 33, "model": "42sa_3.0"},
+            { "id": "pipe-C", "type": "pipe", "end": [-39.95, -13.82], "diameter_in": 0.95,
+              "outputs": [
+                { "id": "sprinkler-1C", "type": "sprinkler","left_edge_degrees": 95.6, "theta_degrees": 180, "max_radius": 33, "model": "42sa_3.0"},
+                { "id": "pipe-F", "type": "pipe", "end": [-11.29, -24.02], "diameter_in": 0.95,
+                  "outputs": [
+                    { "id": "sprinkler-1F", "type": "sprinkler","left_edge_degrees": 95.5, "theta_degrees": 180, "max_radius": 33, "model": "42sa_3.0"}
+                  ]
+                },
+                { "id": "pipe-B", "type": "pipe", "end": [-36, -54.9], "diameter_in": 0.95,
+                  "outputs": [
+                    { "id": "sprinkler-1B", "type": "sprinkler","left_edge_degrees": 95.5, "theta_degrees": 180, "max_radius": 33, "model": "42sa_3.0"},
+                    { "id": "pipe-A", "type": "pipe", "end": [-2, -58.6], "diameter_in": 0.95,
+                      "outputs": [
+                        { "id": "sprinkler-1A", "type": "sprinkler","left_edge_degrees": 68, "theta_degrees": 330, "max_radius": 29, "model": "42sa_3.0"}
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    } 
+  ]
+}
+ 
