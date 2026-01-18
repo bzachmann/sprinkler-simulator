@@ -23,3 +23,9 @@ class ZoneStart:
 
     def getOperatingFlow(self):
         return self.operatingFlow
+    
+    def getFlow(self, pressure):
+        total_flow = 0.0
+        for output in self.outputs:
+            total_flow += output.getFlow(pressure)
+        return total_flow

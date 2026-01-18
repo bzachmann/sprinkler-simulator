@@ -39,14 +39,15 @@ def interp1(x, y, xi):
     return float(y1 + (y2 - y1) * (xi - x1) / (x2 - x1))
 
 class Pipe:
-    def __init__(self, start, end, diameter_in_inches):
+    def __init__(self, name, start, end, diameter_in_inches):
+        self.name = name
         self.start = start
         self.end = end
         self.diameter_in_inches = diameter_in_inches
         self.length_in_feet = math.dist(start, end)
         self.outputs = []
         self.solved = False
-        self.endingPressures = np.arange(25, 65, 1) # Example pressures from 20 to 100 psi
+        self.endingPressures = np.arange(0, 100, 1) # Example pressures from 20 to 100 psi
         self.startingPressures = [] 
         self.flows = []
         self.operatingPressureStart = None
@@ -87,6 +88,10 @@ class Pipe:
     def getFlow(self, pressure):
         if not self.solved:
             self.solve()
+
+        if pressure < self.startingPressures[0] or pressure > self.startingPressures[-1]:
+            raise ValueError(f"Pressure {pressure:.2f} out of bounds for {self.name}'s solved range.")
+           
         return interp1(self.startingPressures, self.flows, pressure)
 
     def solve(self):

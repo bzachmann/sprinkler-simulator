@@ -2,8 +2,9 @@ class Sprinkler:
     # lookup tables for different sprinkler models (pressure in psi : flow in gpm)
     _lookup_tables = {
         "42sa_3.0": {
+            0: 0.0,
             25: 2.3,
-            35: 3.7,
+            35: 2.7,
             45: 3.1,
             55: 3.5,
             65: 3.8
