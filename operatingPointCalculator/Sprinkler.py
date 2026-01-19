@@ -1,27 +1,20 @@
+from MathFunctions import interp1
+
 class Sprinkler:
     # lookup tables for different sprinkler models (pressure in psi : flow in gpm)
+    # Store lookup tables as a dict of model: [pressures, flows]
     _lookup_tables = {
         "42sa_3.0": {
-            0: 0.0,
-            25: 2.3,
-            35: 2.7,
-            45: 3.1,
-            55: 3.5,
-            65: 3.8
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   2.3,    2.7,    3.1,    3.5,    3.8]
         },
         "42sa_4.0": {
-            25: 2.9,
-            35: 3.5,
-            45: 4.0,
-            55: 4.4,
-            65: 4.8
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0, 2.9,   3.5,    4.0,    4.4,    4.8]
         },
         "42sa_5.0": {
-            25: 3.7,
-            35: 4.5,
-            45: 5.1,
-            55: 5.7,
-            65: 6.2
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   3.7,    4.5,    5.1,    5.7,    6.2]
         },
         # Add more models as needed
     }
@@ -45,23 +38,13 @@ class Sprinkler:
         Returns the flow (gpm) for the given pressure (psi).
         If the exact pressure is not in the table, interpolate linearly.
         """
-        pressure = pressure - 5 #assume a 5 psi loss through elbows and fittings ##################################### CHANGE THIS LATER
-        pressures = sorted(self.lookup_table.keys())
-        if pressure <= pressures[0]:
-            return self.lookup_table[pressures[0]]
-        if pressure >= pressures[-1]:
-            return self.lookup_table[pressures[-1]]
-
-        # Linear interpolation
-        for i in range(1, len(pressures)):
-            p1, p2 = pressures[i-1], pressures[i]
-            if p1 <= pressure <= p2:
-                f1, f2 = self.lookup_table[p1], self.lookup_table[p2]
-                # Linear interpolation formula
-                return f1 + (f2 - f1) * (pressure - p1) / (p2 - p1)
-
-        # Should not reach here
-        raise ValueError("Pressure out of interpolation range.")
+        pressure = max(pressure - 5, 0)  # assume a 5 psi loss through elbows and fittings ##################################### CHANGE THIS LATER
+        
+        #TODO handle pressures outside the table range
+        #if pressure < self.lookup_table["pressure"][0] or pressure > self.lookup_table["pressure"][-1]:
+        #    raise ValueError(f"Pressure {pressure} out of bounds for sprinkler model {self.model}.")
+        
+        return interp1(self.lookup_table["pressure"], self.lookup_table["flow"], pressure)
     
     def setOperatingPressure(self, pressure):
         self.operatingPressure = pressure
