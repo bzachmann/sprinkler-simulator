@@ -71,3 +71,33 @@ class WellPump:
                 return interpolated_flow
         # If total_head is higher than any in the table, return the lowest flow
         return sorted_items[-1][0]
+    
+    def get_pressure_at_flow(self, flow_gpm):
+        """
+        Given a flow rate (in gpm), calculate the operating pressure (in psi) the pump can provide.
+
+        :param flow_gpm: Flow rate (gpm)
+        :return: Operating pressure (psi) or None if outside pump curve
+        """
+        # Find the closest flow in the table (interpolating if needed)
+        sorted_items = sorted(self.flow_head_table.items())
+        for i, (flow, head) in enumerate(sorted_items):
+            if flow_gpm <= flow:
+                if i == 0:
+                    total_head = head
+                else:
+                    prev_flow, prev_head = sorted_items[i - 1]
+                    # Linear interpolation between prev and current
+                    if prev_flow == flow:
+                        total_head = head
+                    else:
+                        ratio = (flow_gpm - flow) / (prev_flow - flow)
+                        total_head = head + ratio * (prev_head - head)
+                pressure_head = total_head - self.depth
+                pressure_psi = pressure_head / 2.31
+                return pressure_psi
+        # If flow_gpm is higher than any in the table, return the lowest pressure
+        lowest_flow, lowest_head = sorted_items[-1]
+        pressure_head = lowest_head - self.depth
+        pressure_psi = pressure_head / 2.31
+        return pressure_psi

@@ -75,19 +75,45 @@ for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB, pipeA]:
     print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
 
 pump = WellPump(depth=72)
-inlet_pressures = [p for p in range(30, 80, 1)]
+inlet_pressures = [p for p in range(50, 80, 1)]
 pumpFlows = [pump.get_flow_at_pressure(p) for p in inlet_pressures]
-inlet_flows = [zone1.getFlow(p) for p in inlet_pressures]
+inlet_flows = []
+valid_operating_points = []
 
-plt.plot(inlet_flows, inlet_pressures, marker='o', label='Zone Curve')
-plt.title(f"Zone: {zone1.zone_id} - Inlet Flow vs Ending Pressure")
-plt.xticks(range(int(min(min(inlet_flows), min(pumpFlows))), int(max(max(inlet_flows), max(pumpFlows))) + 1, 1))
-plt.yticks(range(int(min(inlet_pressures)), int(max(inlet_pressures)) + 1, 1))
+for p in inlet_pressures:
+    valid = zone1.setOperatingPressure(p)
+    valid_operating_points.append(valid)
+    inlet_flows.append(zone1.getOperatingFlow()[0])
+
+# Separate valid and invalid points
+valid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if v]
+valid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if v]
+invalid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if not v]
+invalid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if not v]
+
+pumpBackpressure = pump.get_pressure_at_flow(zone1_flow)
+print(f"Pump backpressure at zone flow ({zone1_flow:.2f} GPM): {pumpBackpressure:.2f} PSI")
+pumpFlowCapabilityAtOperatingPressure = pump.get_flow_at_pressure(operatingPressure)
+demandTooHigh = False
+if pumpFlowCapabilityAtOperatingPressure < zone1_flow:
+    demandTooHigh = True
+    print(f"Pump cannot deliver required flow at operating pressure. Pump capability: {pumpFlowCapabilityAtOperatingPressure:.2f} GPM, Required flow: {zone1_flow:.2f} GPM")
+
+# Plot valid points with filled circles, invalid with empty circles
+plt.plot(valid_pressures, valid_flows, marker='o', label='Zone Demand (Valid)', linestyle='None', markerfacecolor='C0')
+if invalid_flows:  # Only plot if there are invalid points
+    plt.plot(invalid_pressures, invalid_flows, marker='o', label='Zone Demand (Invalid)', linestyle='None', markerfacecolor='white', markeredgecolor='C0', markeredgewidth=1.5)
+plt.title(f"Zone: {zone1.zone_id} -  Operating Pressure vs Zone Inlet Flow")
+plt.xticks(range(int(min(inlet_pressures)), int(max(inlet_pressures)) + 1, 1))
+plt.yticks(range(int(min(min(inlet_flows), min(pumpFlows))), int(max(max(inlet_flows), max(pumpFlows))) + 1, 1))
 plt.grid(True)
-plt.plot(pumpFlows, inlet_pressures, marker='x', label='Pump Curve')
+plt.plot(inlet_pressures, pumpFlows, marker='x', label='Pump Production')
+plt.axvline(x=operatingPressure, color='red', linestyle='--', linewidth=2, label=f'Operating Pressure ({operatingPressure} psi)')
+plt.axvline(x=pumpBackpressure, color='green', linestyle='--', linewidth=2, label=f'Pump Backpressure ({pumpBackpressure:.2f} psi)')
+plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}')
 plt.legend()
-plt.xlabel("Inlet Flow (gpm)")
-plt.ylabel("Ending Pressure (psi)")
+plt.xlabel("Pressure (psi)")
+plt.ylabel("Flow (gpm)")
 plt.show()
 
 # Optional: set operating pressure to compute flows (example)
