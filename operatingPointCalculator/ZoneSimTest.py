@@ -57,7 +57,7 @@ zone1.add_output(pipe1E)
 # Solve the hydraulic network
 operatingPressure = 68  # Example initial pressure at the zone start
 zone1.setOperatingPressure(operatingPressure)  # Set initial operating pressure at the zone
-zone1_flow = zone1.getOperatingFlow()
+zone1_flow, _ = zone1.getOperatingFlow()
 # Print zone operating flow and pressure
 print(f"Zone 1 Operating Flow: {zone1_flow:.2f} GPM")
 print(f"Zone 1 Operating Pressure: {operatingPressure:.2f} PSI")  
@@ -65,14 +65,14 @@ print(f"Zone 1 Operating Pressure: {operatingPressure:.2f} PSI")
 # Print operating flow and pressure for each sprinkler
 for sprinkler in [sprinkler1A, sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
     print(f"{sprinkler.name} at {sprinkler.location}:")
-    print(f"  Operating Flow: {sprinkler.getOperatingFlow():.2f} GPM")
-    print(f"  Operating Pressure: {sprinkler.getOperatingPressure():.2f} PSI")
+    print(f"  Operating Flow: {sprinkler.getOperatingFlow()[0]:.2f} GPM")
+    print(f"  Operating Pressure: {sprinkler.getOperatingPressure()[0]:.2f} PSI")
 
 # Print operating flow and pressure for each pipe
 for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB, pipeA]:
     print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
-    print(f"  Operating Flow: {pipe.getOperatingFlow():.2f} GPM")
-    print(f"  Operating Pressure: {pipe.getOperatingPressure():.2f} PSI")
+    print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
+    print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
 
 pump = WellPump(depth=72)
 inlet_pressures = [p for p in range(30, 80, 1)]

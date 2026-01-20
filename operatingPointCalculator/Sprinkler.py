@@ -28,6 +28,8 @@ class Sprinkler:
         self.max_radius = max_radius
         self.operatingPressure = None
         self.operatingFlow = None
+        self.operatingPointValid = None
+        self.fittingPressureLoss = 5  # psi, assumed loss through elbows and fittings
 
         if model not in self._lookup_tables:
             raise ValueError(f"Unknown sprinkler model: {model}")
@@ -38,7 +40,7 @@ class Sprinkler:
         Returns the flow (gpm) for the given pressure (psi).
         If the exact pressure is not in the table, interpolate linearly.
         """
-        pressure = max(pressure - 5, 0)  # assume a 5 psi loss through elbows and fittings ##################################### CHANGE THIS LATER
+        pressure = max(pressure - self.fittingPressureLoss, 0)
         
         #TODO handle pressures outside the table range
         #if pressure < self.lookup_table["pressure"][0] or pressure > self.lookup_table["pressure"][-1]:
@@ -47,18 +49,25 @@ class Sprinkler:
         return interp1(self.lookup_table["pressure"], self.lookup_table["flow"], pressure)
     
     def setOperatingPressure(self, pressure):
-        self.operatingPressure = pressure
-        self.operatingFlow = self.getFlow(pressure)
+        self.operatingPressure = max(pressure - self.fittingPressureLoss, 0)
+        self.operatingPointValid = True
+
+        if self.operatingPressure < self.lookup_table["pressure"][1] or self.operatingPressure > self.lookup_table["pressure"][-1]:
+            self.operatingPointValid = False
+            print(f"Warning: Operating pressure {self.operatingPressure} psi is out of valid range for sprinkler {self.name} model {self.model}.")
+
+        self.operatingFlow = self.getFlow(self.operatingPressure)
+        return self.operatingPointValid
 
     def getOperatingFlow(self):
         if self.operatingPressure is None:
             raise ValueError("Operating pressure not set.")
-        return self.getFlow(self.operatingPressure)
+        return (self.operatingFlow, self.operatingPointValid)
     
     def getOperatingPressure(self):
         if self.operatingPressure is None:
             raise ValueError("Operating pressure not set.")
-        return self.operatingPressure
+        return (self.operatingPressure, self.operatingPointValid)
 # Example usage:
 # sprinkler = Sprinkler("42sa_3.0")
 # flow = sprinkler.getFlow(45)  # Interpolates between 40 and 50 psi

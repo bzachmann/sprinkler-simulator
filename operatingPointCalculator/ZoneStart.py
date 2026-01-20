@@ -7,6 +7,7 @@ class ZoneStart:
 
         self.operatingPressure = None
         self.operatingFlow = None
+        self.operatingPointValid = None
 
     def add_output(self, output):
         self.outputs.append(output)
@@ -16,14 +17,20 @@ class ZoneStart:
     
     def setOperatingPressure(self, pressure):
         self.operatingPressure = pressure
-        self.operatingFlow = 0.0
+        self.operatingFlow = self.getFlow(self.operatingPressure) #this will solve, if not already solved
+        self.operatingPointValid = True
+
         for output in self.outputs:
-            self.operatingFlow += output.getFlow(pressure) #this will solve downstream
-            output.setOperatingPressure(pressure)
+            valid = output.setOperatingPressure(pressure)
+            self.operatingPointValid = self.operatingPointValid and valid
+
+        return self.operatingPointValid
 
     def getOperatingFlow(self):
-        return self.operatingFlow
-    
+        if self.operatingPressure is None:
+            raise ValueError("Operating pressure not set.")
+        return (self.operatingFlow, self.operatingPointValid)
+
     def getFlow(self, pressure):
         total_flow = 0.0
         for output in self.outputs:

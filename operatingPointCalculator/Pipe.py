@@ -54,9 +54,6 @@ class Pipe:
     def getFlow(self, pressure):
         if not self.solved:
             self.solve()
-
-        if pressure < self.startingPressures[0] or pressure > self.startingPressures[-1]:
-            raise ValueError(f"Pressure {pressure:.2f} out of bounds for {self.name}'s solved range.")
            
         return interp1(self.startingPressures, self.flows, pressure)
 
@@ -74,21 +71,35 @@ class Pipe:
         self.solved = True
 
     def setOperatingPressure(self, pressure):
+
+        #print a warning of the pressure is outside the table of solved pressures for this pipe
+        #do not print a warning for this pipe if setting a downstream operating pressure resulted in a downstream failure
+        #however, do return false, if either of the 2 previous conditions occur
+
         self.operatingPressureStart = pressure
-        self.operatingPressureEnd = interp1(self.startingPressures, self.endingPressures, pressure)
-        self.operatingFlow = interp1(self.startingPressures, self.flows, pressure)
+        self.operatingFlow = self.getFlow(self.operatingPressureStart)  #this will solve, if not already solved
+        self.operatingPressureEnd = interp1(self.startingPressures, self.endingPressures, self.operatingPressureStart)
+        self.operatingPointValid = True
+
+        if self.operatingPressureStart < self.startingPressures[0] or self.operatingPressureStart > self.startingPressures[-1]:
+            self.operatingPointValid = False
+            print(f"Warning: Operating pressure {self.operatingPressureStart} psi is outside the solved range for pipe {self.name}.")
+
         for output in self.outputs:
-            output.setOperatingPressure(self.operatingPressureEnd)
+            valid = output.setOperatingPressure(self.operatingPressureEnd)
+            self.operatingPointValid = self.operatingPointValid and valid  #if any downstream is invalid, this pipe is invalid too
+
+        return self.operatingPointValid
 
     def getOperatingPressure(self):
         if self.operatingPressureStart is None:
             raise ValueError("Operating pressure not set.")
-        return self.operatingPressureStart
+        return (self.operatingPressureStart, self.operatingPointValid)
 
     def getOperatingFlow(self):
         if self.operatingPressureStart is None:
             raise ValueError("Operating pressure not set.")
-        return self.operatingFlow
+        return (self.operatingFlow, self.operatingPointValid)
 
 
 
