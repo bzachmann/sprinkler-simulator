@@ -36,3 +36,27 @@ def interp1(x, y, xi):
     if x2 == x1:
         return float(y1)
     return float(y1 + (y2 - y1) * (xi - x1) / (x2 - x1))
+
+# Function to add a partial cylinder (sector) to the surface
+def add_partial_cylinder_to_surface(x, y, z, center, leftEdge_deg, theta_deg, radius, height):
+    x_center, y_center = center
+    # Calculate the distance and angle of each point from the center
+    dx = x - x_center
+    dy = y - y_center
+    distance = np.sqrt(dx**2 + dy**2)
+    # Angle from east (x-axis), counterclockwise, in degrees
+    angles = (np.degrees(np.arctan2(dy, dx)) + 360) % 360
+    # Calculate end angle
+    end_deg = (leftEdge_deg - theta_deg) % 360
+    # Determine mask for sector
+    if theta_deg < 0:
+        if leftEdge_deg < end_deg:
+            mask = (distance <= radius) & (angles >= leftEdge_deg) & (angles <= end_deg)
+        else:
+            mask = (distance <= radius) & ((angles >= leftEdge_deg) | (angles <= end_deg))
+    else:
+        if leftEdge_deg > end_deg:
+            mask = (distance <= radius) & (angles <= leftEdge_deg) & (angles >= end_deg)
+        else:
+            mask = (distance <= radius) & ((angles <= leftEdge_deg) | (angles >= end_deg))
+    z[mask] += height

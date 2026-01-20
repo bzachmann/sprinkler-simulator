@@ -4,6 +4,7 @@ from Sprinkler import Sprinkler
 from WellPump import WellPump
 import matplotlib.pyplot as plt
 
+
 zone1 = ZoneStart(zone_id=1, location=(-46.65, 110), runtime_minutes=30)
 
 # Top-level branch: pipe-1E
@@ -116,5 +117,54 @@ plt.xlabel("Pressure (psi)")
 plt.ylabel("Flow (gpm)")
 plt.show()
 
-# Optional: set operating pressure to compute flows (example)
-# zone1.setOperatingPressure(68)
+
+from MathFunctions import add_partial_cylinder_to_surface
+import numpy as np
+import plotly.graph_objects as go
+
+x = np.linspace(-72, 155, 1001)
+y = np.linspace(-100, 150, 1001)
+x, y = np.meshgrid(x, y)
+z = np.zeros_like(x)
+
+for sprinkler in [sprinkler1A, sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
+
+    #TODO make the color of the sprinkler sector red if its operating point is invalid
+    if sprinkler.getOperatingFlow()[1]:
+        add_partial_cylinder_to_surface(
+            x, y, z,
+            center=sprinkler.location,
+            leftEdge_deg=sprinkler.left_edge_deg,
+            theta_deg=sprinkler.theta_deg,
+            radius=sprinkler.getOperatingRadius()[0],
+            height=sprinkler.getHeight(zone1.runtime_minutes)[0] # Use operating flow as height
+        )
+
+# Create a surface plot with hard edges
+fig = go.Figure(data=[go.Surface(
+    z=z,
+    x=x,
+    y=y,
+    colorscale='Viridis',
+    showscale=True,
+    contours=dict(
+        z=dict(
+            show=True,  # Show contour lines
+            usecolormap=True,  # Use the colormap for contours
+            highlightcolor="limegreen",  # Highlight color for edges
+            project_z=True  # Project contours onto the z-axis
+        )
+    )
+)])
+
+# Set axis labels and layout
+fig.update_layout(
+    scene=dict(
+        xaxis_title='X',
+        yaxis_title='Y',
+        zaxis_title='Z',
+    ),
+    title="Hard-Edged Surface with Plotly"
+)
+
+fig.show()
