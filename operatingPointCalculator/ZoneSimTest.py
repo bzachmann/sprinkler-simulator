@@ -9,27 +9,24 @@ zone1 = ZoneStart(zone_id=1, location=(-46.65, 110), runtime_minutes=30)
 
 # Top-level branch: pipe-1E
 pipe1E = Pipe(name="pipe-1E", start=zone1.location, end=(-45.1, 38.42), diameter_in_inches=0.95)
-sprinkler1E = Sprinkler(name="sprinkler-1E", model="42sa_3.0", location=(-45.1, 38.42), left_edge_deg=95.6, theta_deg=90, max_radius=33)
+sprinkler1E = Sprinkler(name="sprinkler-1E", model="42sa_2.0", location=(-45.1, 38.42), left_edge_deg=95.6, theta_deg=90, max_radius=33)
 
 # pipe-1D branch off pipe-1E
 pipe1D = Pipe(name="pipe-1D", start=pipe1E.end, end=(-44.18, 29.22), diameter_in_inches=0.95)
-sprinkler1D = Sprinkler(name="sprinkler-1D", model="42sa_3.0", location=(-44.18, 29.22), left_edge_deg=2.7, theta_deg=87.1, max_radius=33)
+sprinkler1D = Sprinkler(name="sprinkler-1D", model="42sa_2.0", location=(-44.18, 29.22), left_edge_deg=2.7, theta_deg=87.1, max_radius=33)
 
 # pipe-C branch off pipe-1D
 pipeC = Pipe(name="pipe-C", start=pipe1D.end, end=(-39.95, -13.82), diameter_in_inches=0.95)
-sprinkler1C = Sprinkler(name="sprinkler-1C", model="42sa_3.0", location=(-39.95, -13.82), left_edge_deg=95.6, theta_deg=180, max_radius=33)
+sprinkler1C = Sprinkler(name="sprinkler-1C", model="42sa_5.0", location=(-39.95, -13.82), left_edge_deg=95.6, theta_deg=180, max_radius=33)
 
 # pipe-F branch off pipe-C
 pipeF = Pipe(name="pipe-F", start=pipeC.end, end=(-11.29, -24.02), diameter_in_inches=0.95)
-sprinkler1F = Sprinkler(name="sprinkler-1F", model="42sa_3.0", location=(-11.29, -24.02), left_edge_deg=95.5, theta_deg=180, max_radius=33)
+sprinkler1F = Sprinkler(name="sprinkler-1F", model="42sa_5.0", location=(-11.29, -24.02), left_edge_deg=95.5, theta_deg=180, max_radius=33)
 
 # pipe-B branch off pipe-C
 pipeB = Pipe(name="pipe-B", start=pipeC.end, end=(-36, -54.9), diameter_in_inches=0.95)
-sprinkler1B = Sprinkler(name="sprinkler-1B", model="42sa_3.0", location=(-36, -54.9), left_edge_deg=95.5, theta_deg=180, max_radius=33)
+sprinkler1B = Sprinkler(name="sprinkler-1B", model="42sa_5.0", location=(-36, -54.9), left_edge_deg=95.5, theta_deg=180, max_radius=33)
 
-# pipe-A branch off pipe-B
-pipeA = Pipe(name="pipe-A", start=pipeB.end, end=(-2, -58.6), diameter_in_inches=0.95)
-sprinkler1A = Sprinkler(name="sprinkler-1A", model="42sa_3.0", location=(-2, -58.6), left_edge_deg=68, theta_deg=330, max_radius=29)
 
 # Connect outputs per zones_new2.json structure
 pipe1E.add_output(sprinkler1E)
@@ -45,9 +42,7 @@ pipeC.add_output(pipeB)
 pipeF.add_output(sprinkler1F)
 
 pipeB.add_output(sprinkler1B)
-pipeB.add_output(pipeA)
 
-pipeA.add_output(sprinkler1A)
 
 # Attach top-level pipe to the zone
 zone1.add_output(pipe1E)
@@ -64,13 +59,13 @@ print(f"Zone 1 Operating Flow: {zone1_flow:.2f} GPM")
 print(f"Zone 1 Operating Pressure: {operatingPressure:.2f} PSI")  
 
 # Print operating flow and pressure for each sprinkler
-for sprinkler in [sprinkler1A, sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
+for sprinkler in [sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
     print(f"{sprinkler.name} at {sprinkler.location}:")
     print(f"  Operating Flow: {sprinkler.getOperatingFlow()[0]:.2f} GPM")
     print(f"  Operating Pressure: {sprinkler.getOperatingPressure()[0]:.2f} PSI")
 
 # Print operating flow and pressure for each pipe
-for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB, pipeA]:
+for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
     print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
     print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
     print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
@@ -127,18 +122,17 @@ y = np.linspace(-100, 150, 1001)
 x, y = np.meshgrid(x, y)
 z = np.zeros_like(x)
 
-for sprinkler in [sprinkler1A, sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
+for sprinkler in [sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
 
     #TODO make the color of the sprinkler sector red if its operating point is invalid
-    if sprinkler.getOperatingFlow()[1]:
-        add_partial_cylinder_to_surface(
-            x, y, z,
-            center=sprinkler.location,
-            leftEdge_deg=sprinkler.left_edge_deg,
-            theta_deg=sprinkler.theta_deg,
-            radius=sprinkler.getOperatingRadius()[0],
-            height=sprinkler.getHeight(zone1.runtime_minutes)[0] # Use operating flow as height
-        )
+    add_partial_cylinder_to_surface(
+        x, y, z,
+        center=sprinkler.location,
+        leftEdge_deg=sprinkler.left_edge_deg,
+        theta_deg=sprinkler.theta_deg,
+        radius=sprinkler.getOperatingRadius()[0],
+        height=sprinkler.getHeight(zone1.runtime_minutes)[0] # Use operating flow as height
+    )
 
 # Create a surface plot with hard edges
 fig = go.Figure(data=[go.Surface(

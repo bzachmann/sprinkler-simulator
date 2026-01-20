@@ -5,6 +5,21 @@ class Sprinkler:
     # lookup tables for different sprinkler models (pressure in psi : flow in gpm)
     # Store lookup tables as a dict of model: [pressures, flows]
     _lookup_tables = {
+        "42sa_1.5": {
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   1.1,    1.3,    1.5,    1.7,    1.9],
+            "radius":   [0.0,   33,     34,     35,     35,     34]
+        },
+        "42sa_2.0": {
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   1.5,    1.8,    2.1,    2.3,    2.5],
+            "radius":   [0.0,   35,     36,     37,     37,     35]
+        },
+        "42sa_2.5": {
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   1.8,    2.2,    2.5,    2.8,    3.0],
+            "radius":   [0.0,   35,     37,     37,     37,     37]
+        },
         "42sa_3.0": {
             "pressure": [0,     25,     35,     45,     55,     65],
             "flow":     [0.0,   2.3,    2.7,    3.1,    3.5,    3.8],
@@ -20,6 +35,11 @@ class Sprinkler:
             "flow":     [0.0,   3.7,    4.5,    5.1,    5.7,    6.2],
             "radius":   [0.0,   39,     41,     45,     45,     45]
         },
+        "42sa_6.0": {
+            "pressure": [0,     25,     35,     45,     55,     65],
+            "flow":     [0.0,   4.2,    5.2,    6.0,    6.6,    7.2],
+            "radius":   [0.0,   39,     43,     46,     47,     48]
+        }
         # Add more models as needed
     }
 
