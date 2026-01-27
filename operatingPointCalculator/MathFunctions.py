@@ -37,6 +37,33 @@ def interp1(x, y, xi):
         return float(y1)
     return float(y1 + (y2 - y1) * (xi - x1) / (x2 - x1))
 
+def line_intersection(xs1, ys1, xs2, ys2):
+    """
+    Finds the first intersection point between two polylines defined by (xs1, ys1) and (xs2, ys2).
+    Returns (x, y) of the intersection or None if no intersection is found.
+    """
+    for i in range(len(xs1) - 1):
+        x1, y1 = xs1[i], ys1[i]
+        x2, y2 = xs1[i + 1], ys1[i + 1]
+        for j in range(len(xs2) - 1):
+            x3, y3 = xs2[j], ys2[j]
+            x4, y4 = xs2[j + 1], ys2[j + 1]
+
+            denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+            if denom == 0:
+                continue  # Parallel lines
+
+            px = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / denom
+            py = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / denom
+
+            # Check if intersection is within both segments
+            if (min(x1, x2) <= px <= max(x1, x2) and
+                min(y1, y2) <= py <= max(y1, y2) and
+                min(x3, x4) <= px <= max(x3, x4) and
+                min(y3, y4) <= py <= max(y3, y4)):
+                return (px, py)
+    return None
+
 # Function to add a partial cylinder (sector) to the surface
 def add_partial_cylinder_to_surface(x, y, z, center, leftEdge_deg, theta_deg, radius, height):
     x_center, y_center = center

@@ -3,6 +3,8 @@ from Pipe import Pipe
 from Sprinkler import Sprinkler
 from WellPump import WellPump
 import matplotlib.pyplot as plt
+from CycleStopValve import CycleStopValve
+from MathFunctions import line_intersection
 
 
 zone1 = ZoneStart(zone_id=1, location=(-46.65, 110), runtime_minutes=30)
@@ -50,9 +52,32 @@ zone1.add_output(pipe1E)
 
 
 
-# Solve the hydraulic network
-operatingPressure = 68  # Example initial pressure at the zone start
-zone1.setOperatingPressure(operatingPressure)  # Set initial operating pressure at the zone
+# Generate inlet pressure vs inlet flow data for this zone
+inlet_pressures = [p for p in range(50, 80, 1)]
+inlet_flows = []
+valid_operating_points = []
+for p in inlet_pressures:
+    valid = zone1.setOperatingPressure(p)
+    valid_operating_points.append(valid)
+    inlet_flows.append(zone1.getOperatingFlow()[0])
+
+# Separate valid and invalid points
+valid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if v]
+valid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if v]
+invalid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if not v]
+invalid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if not v]
+
+# Find operating point with Cycle Stop Valve
+csv = CycleStopValve(set_point_psi=68)
+csv_flows = [f for f in range(15, 24, 1)]
+csv_pressures = [csv.getOutletPressure(f) for f in csv_flows]
+operatingPressure, operatingFlow = line_intersection(inlet_pressures, inlet_flows, csv_pressures, csv_flows)
+minimum_backPressure = csv.getMinimumInletPressure(operatingFlow)
+print(f"Operating Point at Pressure: {operatingPressure:.2f} PSI, Flow: {operatingFlow:.2f} GPM, Minimum Backpressure: {minimum_backPressure:.2f} PSI")
+
+
+# Set initial operating pressure at the zone
+zone1.setOperatingPressure(operatingPressure)  
 zone1_flow, _ = zone1.getOperatingFlow()
 # Print zone operating flow and pressure
 print(f"Zone 1 Operating Flow: {zone1_flow:.2f} GPM")
@@ -70,25 +95,25 @@ for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
     print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
     print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
 
+
 pump = WellPump(depth=72)
-inlet_pressures = [p for p in range(50, 80, 1)]
-pumpFlows = [pump.get_flow_at_pressure(p) for p in inlet_pressures]
-inlet_flows = []
-valid_operating_points = []
-
-for p in inlet_pressures:
-    valid = zone1.setOperatingPressure(p)
-    valid_operating_points.append(valid)
-    inlet_flows.append(zone1.getOperatingFlow()[0])
-
-# Separate valid and invalid points
-valid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if v]
-valid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if v]
-invalid_flows = [f for f, v in zip(inlet_flows, valid_operating_points) if not v]
-invalid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) if not v]
+pumpPressures = [p for p in range(50, 100, 1)]
+pumpFlows = [pump.get_flow_at_pressure(p) for p in pumpPressures]
 
 pumpBackpressure = pump.get_pressure_at_flow(zone1_flow)
 print(f"Pump backpressure at zone flow ({zone1_flow:.2f} GPM): {pumpBackpressure:.2f} PSI")
+backPressureTooLow = False
+if pumpBackpressure < minimum_backPressure:
+    backPressureTooLow = True
+    print(f"Warning: Pump backpressure ({pumpBackpressure:.2f} PSI) is less than minimum required by CSV ({minimum_backPressure:.2f} PSI).")
+
+
+##TODO visualize the minimum backpressure
+##TODO check to make sure the differential pressure across CSV does not exceed its max rating 125psi
+##TODO check that the psi at the pump head doesnt exceed the max pressure of pvc pipe (300psi)?
+
+
+
 pumpFlowCapabilityAtOperatingPressure = pump.get_flow_at_pressure(operatingPressure)
 demandTooHigh = False
 if pumpFlowCapabilityAtOperatingPressure < zone1_flow:
@@ -96,21 +121,33 @@ if pumpFlowCapabilityAtOperatingPressure < zone1_flow:
     print(f"Pump cannot deliver required flow at operating pressure. Pump capability: {pumpFlowCapabilityAtOperatingPressure:.2f} GPM, Required flow: {zone1_flow:.2f} GPM")
 
 # Plot valid points with filled circles, invalid with empty circles
+
 plt.plot(valid_pressures, valid_flows, marker='o', label='Zone Demand (Valid)', linestyle='None', markerfacecolor='C0')
 if invalid_flows:  # Only plot if there are invalid points
     plt.plot(invalid_pressures, invalid_flows, marker='o', label='Zone Demand (Invalid)', linestyle='None', markerfacecolor='white', markeredgecolor='C0', markeredgewidth=1.5)
 plt.title(f"Zone: {zone1.zone_id} -  Operating Pressure vs Zone Inlet Flow")
-plt.xticks(range(int(min(inlet_pressures)), int(max(inlet_pressures)) + 1, 1))
+plt.xticks(range(int(min(min(inlet_pressures), min(pumpPressures))), int(max(max(inlet_pressures), max(pumpPressures))) + 1, 1))
 plt.yticks(range(int(min(min(inlet_flows), min(pumpFlows))), int(max(max(inlet_flows), max(pumpFlows))) + 1, 1))
 plt.grid(True)
-plt.plot(inlet_pressures, pumpFlows, marker='x', label='Pump Production')
+plt.plot(pumpPressures, pumpFlows, marker='x', label='Pump Production')
 plt.axvline(x=operatingPressure, color='red', linestyle='--', linewidth=2, label=f'Operating Pressure ({operatingPressure} psi)')
 plt.axvline(x=pumpBackpressure, color='green', linestyle='--', linewidth=2, label=f'Pump Backpressure ({pumpBackpressure:.2f} psi)')
 plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}')
 plt.legend()
 plt.xlabel("Pressure (psi)")
 plt.ylabel("Flow (gpm)")
+plt.plot(csv_pressures, csv_flows, marker='s', color='purple', label='Cycle Stop Valve Outlet Pressure')
 plt.show()
+
+
+
+
+
+
+
+
+
+
 
 
 from MathFunctions import add_partial_cylinder_to_surface
