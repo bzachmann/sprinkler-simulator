@@ -72,7 +72,10 @@ csv = CycleStopValve(set_point_psi=68)
 csv_flows = [f for f in range(15, 25, 1)]
 csv_pressures = [csv.getOutletPressure(f) for f in csv_flows]
 csv_minBackPressures = [csv.getMinimumInletPressure(f) for f in csv_flows]
-operatingPressure, operatingFlow = line_intersection(inlet_pressures, inlet_flows, csv_pressures, csv_flows)
+result = line_intersection(inlet_pressures, inlet_flows, csv_pressures, csv_flows)
+if result is None:
+    raise ValueError("Operating point not found. No intersection found between zone demand curve and CSV outlet pressure curve. Increase csv_flows being graphed")
+operatingPressure, operatingFlow = result
 minimum_backPressure = csv.getMinimumInletPressure(operatingFlow)
 
 print(f"Operating Point at Pressure: {operatingPressure:.2f} PSI, Flow: {operatingFlow:.2f} GPM, Minimum Backpressure: {minimum_backPressure:.2f} PSI")
@@ -101,7 +104,10 @@ for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
 pump = WellPump(depth=72)
 pumpPressures = [p for p in range(50, 100, 1)]
 pumpFlows = [pump.get_flow_at_pressure(p) for p in pumpPressures]
-_, maximum_valid_zone_flow = line_intersection(csv_minBackPressures, csv_flows, pumpPressures, pumpFlows)
+result = line_intersection(csv_minBackPressures, csv_flows, pumpPressures, pumpFlows)
+if result is None:
+    raise ValueError("Maximum valid zone flow at CSV Set Point not found. No intersection found between pump curve and CSV minimum inlet pressure curve. Increase csv_flows being graphed")
+_, maximum_valid_zone_flow = result
 print(f"Maximum valid zone flow at CSV Set Point: {maximum_valid_zone_flow:.2f} GPM")
 
 pumpBackpressure = pump.get_pressure_at_flow(zone1_flow)
