@@ -53,7 +53,7 @@ zone1.add_output(pipe1E)
 
 
 # Generate inlet pressure vs inlet flow data for this zone
-inlet_pressures = [p for p in range(50, 80, 1)]
+inlet_pressures = [p for p in range(40, 80, 1)]
 inlet_flows = []
 valid_operating_points = []
 for p in inlet_pressures:
@@ -69,11 +69,12 @@ invalid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) 
 
 # Find operating point with Cycle Stop Valve
 csv = CycleStopValve(set_point_psi=68)
-csv_flows = [f for f in range(15, 24, 1)]
+csv_flows = [f for f in range(15, 25, 1)]
 csv_pressures = [csv.getOutletPressure(f) for f in csv_flows]
 csv_minBackPressures = [csv.getMinimumInletPressure(f) for f in csv_flows]
 operatingPressure, operatingFlow = line_intersection(inlet_pressures, inlet_flows, csv_pressures, csv_flows)
 minimum_backPressure = csv.getMinimumInletPressure(operatingFlow)
+
 print(f"Operating Point at Pressure: {operatingPressure:.2f} PSI, Flow: {operatingFlow:.2f} GPM, Minimum Backpressure: {minimum_backPressure:.2f} PSI")
 
 
@@ -100,6 +101,8 @@ for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
 pump = WellPump(depth=72)
 pumpPressures = [p for p in range(50, 100, 1)]
 pumpFlows = [pump.get_flow_at_pressure(p) for p in pumpPressures]
+_, maximum_valid_zone_flow = line_intersection(csv_minBackPressures, csv_flows, pumpPressures, pumpFlows)
+print(f"Maximum valid zone flow at CSV Set Point: {maximum_valid_zone_flow:.2f} GPM")
 
 pumpBackpressure = pump.get_pressure_at_flow(zone1_flow)
 print(f"Pump backpressure at zone flow ({zone1_flow:.2f} GPM): {pumpBackpressure:.2f} PSI")
@@ -107,6 +110,13 @@ backPressureTooLow = False
 if pumpBackpressure < minimum_backPressure:
     backPressureTooLow = True
     print(f"Warning: Pump backpressure ({pumpBackpressure:.2f} PSI) is less than minimum required by CSV ({minimum_backPressure:.2f} PSI).")
+
+demandTooHigh = False
+if zone1_flow > maximum_valid_zone_flow:
+    demandTooHigh = True
+    print(f"Pump cannot deliver required flow at operating pressure. Pump capability: {maximum_valid_zone_flow:.2f} GPM, Required flow: {zone1_flow:.2f} GPM")
+
+
 
 
 #check the maximum differential pressure across the CSV
@@ -120,11 +130,6 @@ print(f"Maximum differential pressure across CSV (at 1 GPM): {differentialPressu
 
 
 
-pumpFlowCapabilityAtOperatingPressure = pump.get_flow_at_pressure(operatingPressure)
-demandTooHigh = False
-if pumpFlowCapabilityAtOperatingPressure < zone1_flow:
-    demandTooHigh = True
-    print(f"Pump cannot deliver required flow at operating pressure. Pump capability: {pumpFlowCapabilityAtOperatingPressure:.2f} GPM, Required flow: {zone1_flow:.2f} GPM")
 
 # Plot valid points with filled circles, invalid with empty circles
 
@@ -137,12 +142,13 @@ plt.yticks(range(int(min(min(inlet_flows), min(pumpFlows))), int(max(max(inlet_f
 plt.grid(True)
 plt.plot(pumpPressures, pumpFlows, marker='x', label='Pump Production')
 plt.axvline(x=operatingPressure, color='red', linestyle='--', linewidth=2, label=f'Operating Pressure ({operatingPressure} psi)')
-plt.axvline(x=pumpBackpressure, color='green', linestyle='--', linewidth=2, label=f'Pump Backpressure ({pumpBackpressure:.2f} psi)')
-plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}{"  INSUFFICIENT BACKPRESSURE" if backPressureTooLow else ""}')
+plt.axvline(x=pumpBackpressure, color='green', linestyle='--', linewidth=2, label=f'Pump Backpressure ({pumpBackpressure:.2f} psi){"  INSUFFICIENT BACKPRESSURE" if backPressureTooLow else ""}')
+plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}')
+plt.axhline(y=maximum_valid_zone_flow, color='purple', linestyle='--', linewidth=2, label=f'Max Valid Zone Flow at CSV Set Point ({maximum_valid_zone_flow:.2f} gpm)')
 
 plt.plot(csv_pressures, csv_flows, marker='s', color='purple', label='CSV Outlet Pressure (Reduced Pressure Falloff)')
 plt.plot(csv_minBackPressures, csv_flows, marker='^', color='purple', label='CSV Min Inlet Pressure (Friction Loss)')
-plt.fill_betweenx(csv_flows, csv_minBackPressures, csv_pressures, color='purple', alpha=0.2, label='CSV Backpressure Range')
+plt.fill_betweenx(csv_flows, csv_minBackPressures, csv_pressures, color='purple', alpha=0.2, label='CSV Pressure Loss Region')
 plt.legend()
 plt.xlabel("Pressure (psi)")
 plt.ylabel("Flow (gpm)")
