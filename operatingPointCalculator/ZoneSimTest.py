@@ -71,6 +71,7 @@ invalid_pressures = [p for p, v in zip(inlet_pressures, valid_operating_points) 
 csv = CycleStopValve(set_point_psi=68)
 csv_flows = [f for f in range(15, 24, 1)]
 csv_pressures = [csv.getOutletPressure(f) for f in csv_flows]
+csv_minBackPressures = [csv.getMinimumInletPressure(f) for f in csv_flows]
 operatingPressure, operatingFlow = line_intersection(inlet_pressures, inlet_flows, csv_pressures, csv_flows)
 minimum_backPressure = csv.getMinimumInletPressure(operatingFlow)
 print(f"Operating Point at Pressure: {operatingPressure:.2f} PSI, Flow: {operatingFlow:.2f} GPM, Minimum Backpressure: {minimum_backPressure:.2f} PSI")
@@ -108,9 +109,14 @@ if pumpBackpressure < minimum_backPressure:
     print(f"Warning: Pump backpressure ({pumpBackpressure:.2f} PSI) is less than minimum required by CSV ({minimum_backPressure:.2f} PSI).")
 
 
-##TODO visualize the minimum backpressure
-##TODO check to make sure the differential pressure across CSV does not exceed its max rating 125psi
-##TODO check that the psi at the pump head doesnt exceed the max pressure of pvc pipe (300psi)?
+#check the maximum differential pressure across the CSV
+CSV_pressure_at_1gpm = csv.getOutletPressure(1)
+backPressure_at_1gpm = pump.get_pressure_at_flow(1)
+differentialPressure_CSV = backPressure_at_1gpm - CSV_pressure_at_1gpm
+headPressure_at_1gpm = pump.get_head_pressure_at_flow(1)
+print(f"Maximum Backpressure (at 1 GPM): {backPressure_at_1gpm:.2f} PSI")
+print(f"Maximum Pump Head Pressure (at 1 GPM): {headPressure_at_1gpm:.2f} PSI")
+print(f"Maximum differential pressure across CSV (at 1 GPM): {differentialPressure_CSV:.2f} PSI")
 
 
 
@@ -132,11 +138,15 @@ plt.grid(True)
 plt.plot(pumpPressures, pumpFlows, marker='x', label='Pump Production')
 plt.axvline(x=operatingPressure, color='red', linestyle='--', linewidth=2, label=f'Operating Pressure ({operatingPressure} psi)')
 plt.axvline(x=pumpBackpressure, color='green', linestyle='--', linewidth=2, label=f'Pump Backpressure ({pumpBackpressure:.2f} psi)')
-plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}')
+plt.axhline(y=zone1_flow, color='orange', linestyle='--', linewidth=2, label=f'Zone Flow ({zone1_flow:.2f} gpm){"  DEMAND TOO HIGH" if demandTooHigh else ""}{"  INSUFFICIENT BACKPRESSURE" if backPressureTooLow else ""}')
+
+plt.plot(csv_pressures, csv_flows, marker='s', color='purple', label='CSV Outlet Pressure (Reduced Pressure Falloff)')
+plt.plot(csv_minBackPressures, csv_flows, marker='^', color='purple', label='CSV Min Inlet Pressure (Friction Loss)')
+plt.fill_betweenx(csv_flows, csv_minBackPressures, csv_pressures, color='purple', alpha=0.2, label='CSV Backpressure Range')
 plt.legend()
 plt.xlabel("Pressure (psi)")
 plt.ylabel("Flow (gpm)")
-plt.plot(csv_pressures, csv_flows, marker='s', color='purple', label='Cycle Stop Valve Outlet Pressure')
+
 plt.show()
 
 
