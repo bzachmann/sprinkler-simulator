@@ -99,6 +99,12 @@ class Sprinkler:
         radius = interp1(self.lookup_table["pressure"], self.lookup_table["radius"], self.operatingPressure)
         return (min(radius, self.max_radius), self.operatingPointValid)
     
+    def getMaxOperatingRadius(self):
+        if self.operatingPressure is None:
+            raise ValueError("Operating pressure not set.")
+        radius = interp1(self.lookup_table["pressure"], self.lookup_table["radius"], self.operatingPressure)
+        return (radius, self.operatingPointValid)
+    
     def getHeight(self, runtime_minutes):
         """
         Calculate the height representing the amount of water spread across the sector.

@@ -12,11 +12,11 @@ zone2 = ZoneStart(zone_id=2, location=(-46.65, 110), runtime_minutes=30)
 
 # Zone2 sprinklers from zoneInfo.csv
 sprinkler2A = Sprinkler(name="sprinkler-2A", model="42sa_3.0", location=(-23.77, 60.59), left_edge_deg=56.1, theta_deg=150.3, max_radius=24.92)
-sprinkler2B = Sprinkler(name="sprinkler-2B", model="42sa_3.0", location=(-3.08, 20.83), left_edge_deg=-90, theta_deg=180, max_radius=26)
-sprinkler2C = Sprinkler(name="sprinkler-2C", model="42sa_3.0", location=(7.78, -3.63), left_edge_deg=-64.4, theta_deg=127.4, max_radius=30)
+sprinkler2B = Sprinkler(name="sprinkler-2B", model="42sa_4.0", location=(-3.08, 20.83), left_edge_deg=-90, theta_deg=180, max_radius=26)
+sprinkler2C = Sprinkler(name="sprinkler-2C", model="42sa_4.0", location=(7.78, -3.63), left_edge_deg=-64.4, theta_deg=127.4, max_radius=30)
 sprinkler2D = Sprinkler(name="sprinkler-2D", model="42sa_3.0", location=(22.93, -34.04), left_edge_deg=-85.9, theta_deg=150.2, max_radius=18)
 sprinkler2E = Sprinkler(name="sprinkler-2E", model="42sa_3.0", location=(24.18, -54.83), left_edge_deg=-90, theta_deg=171.1, max_radius=23)
-sprinkler2F = Sprinkler(name="sprinkler-2F", model="42sa_3.0", location=(-2.06, -58.54), left_edge_deg=-35.6, theta_deg=84.6, max_radius=27)
+sprinkler2F = Sprinkler(name="sprinkler-2F", model="42sa_2.0", location=(-2.06, -58.54), left_edge_deg=-35.6, theta_deg=84.6, max_radius=27)
 
 # Zone2 pipes in chain
 pipe2A = Pipe(name="pipe-2A", start=zone2.location, end=sprinkler2A.location, diameter_in_inches=0.95)
@@ -124,12 +124,18 @@ for sprinkler in [sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1
     print(f"{sprinkler.name} at {sprinkler.location}:")
     print(f"  Operating Flow: {sprinkler.getOperatingFlow()[0]:.2f} GPM")
     print(f"  Operating Pressure: {sprinkler.getOperatingPressure()[0]:.2f} PSI")
+    set_radius = sprinkler.max_radius
+    operating_radius = sprinkler.getMaxOperatingRadius()[0]
+    print(f"  Set Radius: {set_radius:.2f} ft")
+    print(f"  Max Radius at Operating Pressure: {operating_radius:.2f} ft")
+    if set_radius > operating_radius:
+        print(f"  WARNING: Set radius ({set_radius:.2f} ft) is larger than max radius at operating pressure ({operating_radius:.2f} ft)")
 
-# Print operating flow and pressure for each pipe
-for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
-    print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
-    print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
-    print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
+# # Print operating flow and pressure for each pipe
+# for pipe in [pipe1E, pipe1D, pipeC, pipeF, pipeB]:
+#     print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
+#     print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
+#     print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
 
 
 # For zone2
@@ -168,12 +174,19 @@ for sprinkler in [sprinkler2A, sprinkler2B, sprinkler2C, sprinkler2D, sprinkler2
     print(f"{sprinkler.name} at {sprinkler.location}:")
     print(f"  Operating Flow: {sprinkler.getOperatingFlow()[0]:.2f} GPM")
     print(f"  Operating Pressure: {sprinkler.getOperatingPressure()[0]:.2f} PSI")
+    set_radius = sprinkler.max_radius
+    operating_radius = sprinkler.getMaxOperatingRadius()[0]
+    print(f"  Set Radius: {set_radius:.2f} ft")
+    print(f"  Max Radius at Operating Pressure: {operating_radius:.2f} ft")
+    if set_radius > operating_radius:
+        print(f"  WARNING: Set radius ({set_radius:.2f} ft) is larger than max radius at operating pressure ({operating_radius:.2f} ft)")
 
-# Print operating flow and pressure for each pipe in zone2
-for pipe in [pipe2A, pipe2B, pipe2C, pipe2D, pipe2E, pipe2F]:
-    print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
-    print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
-    print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
+
+# # Print operating flow and pressure for each pipe in zone2
+# for pipe in [pipe2A, pipe2B, pipe2C, pipe2D, pipe2E, pipe2F]:
+#     print(f"{pipe.name} from {pipe.start} to {pipe.end}:")
+#     print(f"  Operating Flow: {pipe.getOperatingFlow()[0]:.2f} GPM")
+#     print(f"  Operating Pressure: {pipe.getOperatingPressure()[0]:.2f} PSI")
 
 
 pump = WellPump(depth=72)
@@ -281,17 +294,17 @@ y = np.linspace(-100, 150, 1001)
 x, y = np.meshgrid(x, y)
 z = np.zeros_like(x)
 
-# Zone 1 sprinklers
-for sprinkler in [sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
-    #TODO make the color of the sprinkler sector red if its operating point is invalid
-    add_partial_cylinder_to_surface(
-        x, y, z,
-        center=sprinkler.location,
-        leftEdge_deg=sprinkler.left_edge_deg,
-        theta_deg=sprinkler.theta_deg,
-        radius=sprinkler.getOperatingRadius()[0],
-        height=sprinkler.getHeight(zone1.runtime_minutes)[0] # Use operating flow as height
-    )
+# # Zone 1 sprinklers
+# for sprinkler in [sprinkler1B, sprinkler1C, sprinkler1D, sprinkler1E, sprinkler1F]:
+#     #TODO make the color of the sprinkler sector red if its operating point is invalid
+#     add_partial_cylinder_to_surface(
+#         x, y, z,
+#         center=sprinkler.location,
+#         leftEdge_deg=sprinkler.left_edge_deg,
+#         theta_deg=sprinkler.theta_deg,
+#         radius=sprinkler.getOperatingRadius()[0],
+#         height=sprinkler.getHeight(zone1.runtime_minutes)[0] # Use operating flow as height
+#     )
 
 # Zone 2 sprinklers
 for sprinkler in [sprinkler2A, sprinkler2B, sprinkler2C, sprinkler2D, sprinkler2E, sprinkler2F]:
