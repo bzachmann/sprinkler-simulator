@@ -67,6 +67,9 @@ def line_intersection(xs1, ys1, xs2, ys2):
 # Function to add a partial cylinder (sector) to the surface
 def add_partial_cylinder_to_surface(x, y, z, center, leftEdge_deg, theta_deg, radius, height):
     x_center, y_center = center
+    # Normalize angles to 0-360 range
+    leftEdge_deg = (leftEdge_deg % 360 + 360) % 360
+    theta_deg = (theta_deg % 360 + 360) % 360
     # Calculate the distance and angle of each point from the center
     dx = x - x_center
     dy = y - y_center
